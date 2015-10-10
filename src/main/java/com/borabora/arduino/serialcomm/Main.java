@@ -6,8 +6,11 @@ package com.borabora.arduino.serialcomm;
 public class Main {
     public static void main(String[] args) {
         SerialConversation conversation = new SerialConversation();
+        byte sec = 0;
         SerialListener listener = new SerialListener();
         conversation.start(listener);
-        conversation.talkAndOver("salvasalva");
+        conversation.talkAndOver("casa\ntomada");
+        conversation.talkAndOver("otra");
+        conversation.talkAndOver("tercera");
     }
 }

@@ -10,6 +10,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.UnsupportedEncodingException;
+import java.util.concurrent.ArrayBlockingQueue;
 
 public class SerialConversation {
 
@@ -17,29 +18,37 @@ public class SerialConversation {
     private static final int MIN_PORT = 0;
     private Logger logger = LogManager.getLogger(SerialConversation.class);
     private SerialPort serialPort;
+    private ArrayBlockingQueue<String> lock = new ArrayBlockingQueue<String>(1);
 
     public boolean talkAndOver(String msg) {
         String s = "UTF-8";
         boolean done = false;
         try {
-            if (msg != null) {
-                try {
-                    Thread.sleep(3000l);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (msg != null) {
+/*                    try {
+                        Thread.sleep(300l);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }*/
+                    msg = clean(msg);
+                    lock.put(msg);
+                    done = serialPort.writeString(msg + "\n", s);
+                    logger.info("Sending " + msg);
+                } else {
+                    logger.error(MESG_NULL);
                 }
-                done = serialPort.writeString(msg + "\n", s);
-                logger.info("Sending " + msg);
-
-            } else {
-                logger.error(MESG_NULL);
-            }
         } catch (SerialPortException e) {
             logger.error(e.getMessage());
         } catch (UnsupportedEncodingException e) {
             logger.error(e.getMessage());
+        } catch (InterruptedException e) {
+            logger.error(e.getMessage());
         }
         return done;
+    }
+
+    private String clean(String msg) {
+        return msg;
     }
 
     public void openPort(int number) {
@@ -78,5 +87,13 @@ public class SerialConversation {
                 e.printStackTrace();
             }
         }
+    }
+
+    public ArrayBlockingQueue<String> getLock() {
+        return lock;
+    }
+
+    public void setLock(ArrayBlockingQueue<String> lock) {
+        this.lock = lock;
     }
 }
