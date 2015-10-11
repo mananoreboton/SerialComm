@@ -19,21 +19,29 @@ public class SerialConversation {
     private Logger logger = LogManager.getLogger(SerialConversation.class);
     private SerialPort serialPort;
     private ArrayBlockingQueue<String> lock = new ArrayBlockingQueue<String>(1);
+    public boolean sync;
 
-    public boolean talkAndOver(String msg) {
+    public SerialConversation(boolean sync) {
+        this.sync = sync;
+    }
+
+    public boolean talkAndOver(SerialMessage serialMessage) {
         String s = "UTF-8";
         boolean done = false;
         try {
-                if (msg != null) {
+                if (serialMessage.getMsg() != null) {
 /*                    try {
                         Thread.sleep(300l);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }*/
-                    msg = clean(msg);
-                    lock.put(msg);
-                    done = serialPort.writeString(msg + "\n", s);
-                    logger.info("Sending " + msg);
+                    serialMessage.setMsg(clean(serialMessage.getMsg()));
+                    if (sync) {
+                        lock.put(serialMessage.getMsg());
+                    }
+                    done = serialPort.writeString(serialMessage.getCommand() + serialMessage.getMsg() + "\n", s);
+
+                    logger.info("Sending " + serialMessage.getMsg());
                 } else {
                     logger.error(MESG_NULL);
                 }
@@ -95,5 +103,13 @@ public class SerialConversation {
 
     public void setLock(ArrayBlockingQueue<String> lock) {
         this.lock = lock;
+    }
+
+    public boolean isSync() {
+        return sync;
+    }
+
+    public void setSync(boolean sync) {
+        this.sync = sync;
     }
 }

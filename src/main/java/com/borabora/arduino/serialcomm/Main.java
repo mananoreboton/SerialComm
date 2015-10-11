@@ -5,12 +5,19 @@ package com.borabora.arduino.serialcomm;
  */
 public class Main {
     public static void main(String[] args) {
-        SerialConversation conversation = new SerialConversation();
-        byte sec = 0;
-        SerialListener listener = new SerialListener();
+        int command = 1;
+        int command2 = 2;
+        int command3 = 3;
+        SerialConversation conversation = new SerialConversation(false);
+        SerialActions actions = new SerialActions();
+        actions.put(command, x -> {
+            System.out.println("x = " + x + x);
+            return x;
+        });
+        SerialListener listener = new SerialListener(actions);
         conversation.start(listener);
-        conversation.talkAndOver("casa\ntomada");
-        conversation.talkAndOver("otra");
-        conversation.talkAndOver("tercera");
+        conversation.talkAndOver(new SerialMessage(command, "casa tomada"));
+        conversation.talkAndOver(new SerialMessage(command2, "otra"));
+        conversation.talkAndOver(new SerialMessage(command3, "tercera"));
     }
 }

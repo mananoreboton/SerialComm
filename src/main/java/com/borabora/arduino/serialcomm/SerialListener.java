@@ -10,6 +10,8 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Created by mrbueno on 07/10/15.
@@ -19,6 +21,15 @@ public class SerialListener implements SerialPortEventListener {
     private SerialConversation conversation;
     private SerialPort serialPort;
     private List<Character> buffer = new ArrayList<Character>(16);
+    private SerialActions actions;
+
+    public SerialListener(SerialActions actions) {
+
+        if (actions == null) {
+            actions = new SerialActions();
+        }
+        this.actions = actions;
+    }
 
 
     public void serialEvent(SerialPortEvent event) {
@@ -32,10 +43,12 @@ public class SerialListener implements SerialPortEventListener {
                             if(b != '\n') {
                                 buffer.add((char) b);
                             } else {
-                                String msg = createMsg(buffer);
-                                logger.info("Procesing " + msg);
+                                SerialMessage msg = createMsg(buffer);
+                                processMsg(msg);
                                 buffer = new ArrayList<Character>(16);
-                                this.conversation.getLock().take();
+                                if (this.conversation.isSync()) {
+                                    this.conversation.getLock().take();
+                                }
                             }
                         }
                 } catch (SerialPortException ex) {
@@ -66,12 +79,28 @@ public class SerialListener implements SerialPortEventListener {
         }
     }
 
-    private String createMsg(List<Character> chars) {
+    private String processMsg(SerialMessage s) {
+        String apply = null;
+        if (actions.containsKey(s.getCommand())) {
+            Function<String, String> action = actions.get(s.getCommand());
+            apply = action.apply(s.getMsg());
+        } else {
+            logger.info("No action for command " + s.getCommand() + " and msg " + s.getMsg());
+        }
+        return apply;
+    }
+
+    private SerialMessage createMsg(List<Character> chars) {
+        SerialMessage serialMessage = new SerialMessage();
         StringBuilder sb = new StringBuilder(chars.size());
         for (Character c : chars)
             sb.append(c.charValue());
 
-        return sb.toString();
+        String msg = sb.toString();
+        serialMessage.setMsg(msg.substring(1));
+        serialMessage.setCommand(Integer.valueOf(msg.substring(0,1)));
+        return serialMessage;
+
     }
 
     public void setConversation(SerialConversation conversation) {
