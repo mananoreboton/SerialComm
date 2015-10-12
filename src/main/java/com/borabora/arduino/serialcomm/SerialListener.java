@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -79,10 +78,10 @@ public class SerialListener implements SerialPortEventListener {
         }
     }
 
-    private String processMsg(SerialMessage s) {
-        String apply = null;
+    private Object processMsg(SerialMessage s) {
+        Object apply = null;
         if (actions.containsKey(s.getCommand())) {
-            Function<String, String> action = actions.get(s.getCommand());
+            Function<byte[], String> action = actions.get(s.getCommand());
             apply = action.apply(s.getMsg());
         } else {
             logger.info("No action for command " + s.getCommand() + " and msg " + s.getMsg());
@@ -97,8 +96,10 @@ public class SerialListener implements SerialPortEventListener {
             sb.append(c.charValue());
 
         String msg = sb.toString();
-        serialMessage.setMsg(msg.substring(1));
-        serialMessage.setCommand(Integer.valueOf(msg.substring(0,1)));
+        serialMessage.setMsg(msg.getBytes());
+        //serialMessage.setMsg(msg.substring(1));
+        //serialMessage.setCommand(Integer.valueOf(msg.substring(0,1)));
+        serialMessage.setCommand(chars.get(0));
         return serialMessage;
 
     }

@@ -9,14 +9,14 @@ import java.util.function.Function;
  */
 public class SerialActions {
 
-    Map<Integer, Function<String, String>> map = new HashMap<>();
+    Map<Integer, Function<byte[], String>> map = new HashMap<>();
 
-    public Function<String, String> get(Integer index) {
-        Function<String, String> action = map.get(index);
+    public Function<byte[], String> get(Integer index) {
+        Function<byte[], String> action = map.get(index);
         return action;
     }
 
-    public void put(Integer command, Function<String, String> action) {
+    public void put(Integer command, Function<byte[], String> action) {
         map.put(command, action);
     }
 

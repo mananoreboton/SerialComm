@@ -2,12 +2,12 @@ package com.borabora.arduino.serialcomm;
 
 public class SerialMessage {
     private int command;
-    private String msg;
+    private byte[] msg;
 
     public SerialMessage() {
     }
 
-    public SerialMessage(int command, String msg) {
+    public SerialMessage(int command, byte[] msg) {
         this.command = command;
         this.msg = msg;
     }
@@ -16,11 +16,11 @@ public class SerialMessage {
         return command;
     }
 
-    public String getMsg() {
+    public byte[] getMsg() {
         return msg;
     }
 
-    public void setMsg(String msg) {
+    public void setMsg(byte[] msg) {
         this.msg = msg;
     }
 

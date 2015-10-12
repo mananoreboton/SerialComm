@@ -9,7 +9,6 @@ import jssc.SerialPortException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.UnsupportedEncodingException;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class SerialConversation {
@@ -18,7 +17,7 @@ public class SerialConversation {
     private static final int MIN_PORT = 0;
     private Logger logger = LogManager.getLogger(SerialConversation.class);
     private SerialPort serialPort;
-    private ArrayBlockingQueue<String> lock = new ArrayBlockingQueue<String>(1);
+    private ArrayBlockingQueue<byte[]> lock = new ArrayBlockingQueue<>(1);
     public boolean sync;
 
     public SerialConversation(boolean sync) {
@@ -39,23 +38,37 @@ public class SerialConversation {
                     if (sync) {
                         lock.put(serialMessage.getMsg());
                     }
-                    done = serialPort.writeString(serialMessage.getCommand() + serialMessage.getMsg() + "\n", s);
 
-                    logger.info("Sending " + serialMessage.getMsg());
+
+
+                    byte[] bytes = serialMessage.getMsg();
+
+
+                    byte[] msgAsBytes = new byte[bytes.length + 2];
+                    msgAsBytes[0] = (byte) serialMessage.getCommand();
+                    for (int i = 0; i < bytes.length; i++) {
+                        byte aByte = bytes[i];
+                        msgAsBytes[i + 1] = aByte;
+                    }
+                    msgAsBytes[bytes.length + 1] = '\n';
+                    done = serialPort.writeBytes(msgAsBytes);
+                    //done = serialPort.writeString(serialMessage.getCommand() + serialMessage.getMsg() + "\n", s);
+
+                    logger.info("Sending " + new String(serialMessage.getMsg()));
                 } else {
                     logger.error(MESG_NULL);
                 }
         } catch (SerialPortException e) {
             logger.error(e.getMessage());
-        } catch (UnsupportedEncodingException e) {
-            logger.error(e.getMessage());
+//        } catch (UnsupportedEncodingException e) {
+//            logger.error(e.getMessage());
         } catch (InterruptedException e) {
             logger.error(e.getMessage());
         }
         return done;
     }
 
-    private String clean(String msg) {
+    private byte[] clean(byte[] msg) {
         return msg;
     }
 
@@ -97,11 +110,11 @@ public class SerialConversation {
         }
     }
 
-    public ArrayBlockingQueue<String> getLock() {
+    public ArrayBlockingQueue<byte[]> getLock() {
         return lock;
     }
 
-    public void setLock(ArrayBlockingQueue<String> lock) {
+    public void setLock(ArrayBlockingQueue<byte[]> lock) {
         this.lock = lock;
     }
 
