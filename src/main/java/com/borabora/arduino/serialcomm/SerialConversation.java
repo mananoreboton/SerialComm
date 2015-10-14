@@ -28,36 +28,32 @@ public class SerialConversation {
         String s = "UTF-8";
         boolean done = false;
         try {
-                if (serialMessage.getMsg() != null) {
+            if (serialMessage.getMsg() != null) {
 /*                    try {
                         Thread.sleep(300l);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }*/
-                    serialMessage.setMsg(clean(serialMessage.getMsg()));
-                    if (sync) {
-                        lock.put(serialMessage.getMsg());
-                    }
-
-
-
-                    byte[] bytes = serialMessage.getMsg();
-
-
-                    byte[] msgAsBytes = new byte[bytes.length + 2];
-                    msgAsBytes[0] = (byte) serialMessage.getCommand();
-                    for (int i = 0; i < bytes.length; i++) {
-                        byte aByte = bytes[i];
-                        msgAsBytes[i + 1] = aByte;
-                    }
-                    msgAsBytes[bytes.length + 1] = '\n';
-                    done = serialPort.writeBytes(msgAsBytes);
-                    //done = serialPort.writeString(serialMessage.getCommand() + serialMessage.getMsg() + "\n", s);
-
-                    logger.info("Sending " + new String(serialMessage.getMsg()));
-                } else {
-                    logger.error(MESG_NULL);
+                serialMessage.setMsg(clean(serialMessage.getMsg()));
+                if (sync) {
+                    lock.put(serialMessage.getMsg());
                 }
+
+                byte[] bytes = serialMessage.getMsg();
+                byte[] msgAsBytes = new byte[bytes.length + 2];
+                msgAsBytes[0] = (byte) serialMessage.getCommand();
+                for (int i = 0; i < bytes.length; i++) {
+                    byte aByte = bytes[i];
+                    msgAsBytes[i + 1] = aByte;
+                }
+                msgAsBytes[bytes.length + 1] = '\n';
+                logger.info("Sending " + new String(serialMessage.getMsg()) + "-");
+                done = serialPort.writeBytes(msgAsBytes);
+                //done = serialPort.writeString(serialMessage.getCommand() + serialMessage.getMsg() + "\n", s);
+
+            } else {
+                logger.error(MESG_NULL);
+            }
         } catch (SerialPortException e) {
             logger.error(e.getMessage());
 //        } catch (UnsupportedEncodingException e) {

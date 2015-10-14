@@ -1,16 +1,20 @@
 String inputString = "";
 boolean stringComplete = false;
-int l = 100;
+int l = 50;
 
 void setup() {
   pinMode(8, OUTPUT);
   pinMode(9, OUTPUT);
   pinMode(10, OUTPUT);
   pinMode(12, OUTPUT);
-  pinMode(13, OUTPUT);
+
 
   Serial.begin(9600);
-  inputString.reserve(200);
+  inputString.reserve(400);
+
+  // Music play
+  pinMode(5, OUTPUT);
+
 }
 
 void loop() {
@@ -18,10 +22,18 @@ void loop() {
 
   if (stringComplete) {
     luz(l, 10);
-    parseCommand_playMusic(inputString);
+    selectCommand(inputString);
     Serial.print(inputString);
     inputString = "";
     stringComplete = false;
+  }
+}
+
+void selectCommand(String inputString) {
+  if(inputString.length() > 0) {
+    if((byte) inputString.charAt(0) == 1) {
+      parseCommand_playMusic(inputString);
+    }
   }
 }
 
@@ -48,22 +60,33 @@ void luz(int d, int p) {
 }
 
 
-/************************************/
+/******************* Music Play *****************/
+
 void parseCommand_playMusic(String msg) {
-    int buzzerPin = msg.charAt(1);
-    int songLength = msg.charAt(2);
-    int beats[songLength];
-    int maxi = songLength + 3;
-    int i = 0;
-    for (i = 3; i < maxi; i++) {
-        beats[i] = msg.charAt(i);
-    }
-    char notes[songLength];
-    maxi = songLength * 2 + 3;
-    for (i = songLength + 3; i < maxi; i++) {
-        notes[i] = msg.charAt(i);
-    }
-    playMusic(buzzerPin, songLength, beats, notes);
+  const int buzzerPin = msg.charAt(1);
+  const int songLength = msg.charAt(2);
+
+  //char notes[] = "ggagCbggagDCggGECbaffecdc ggagCbggagDCggGECbaffecdc"; // a space represents a rest
+  //int beats[] = {1,1,2,2,2,4,1,1,2,2,2,4,1,1,2,2,2,2,2,1,1,2,2,2,4,4,1,1,2,2,2,4,1,1,2,2,2,4,1,1,2,2,2,2,2,1,1,2,2,2,4};
+  int beats[songLength];
+  int maxi = songLength + 3;
+  int i = 0;
+  int j = 0;
+
+  char notes[songLength];
+  for (i = 3; i < maxi; i++) {
+      notes[j] = msg.charAt(i);
+      j++;
+  }
+  j = 0;
+
+  maxi = songLength * 2 + 3;
+  for (i = songLength + 3; i < maxi; i++) {
+      beats[j] = msg.charAt(i);
+      j++;
+  }
+
+  playMusic(buzzerPin, songLength, beats, notes);
 }
 
 void playMusic(int buzzerPin, int songLength, int beats[], char notes[])
